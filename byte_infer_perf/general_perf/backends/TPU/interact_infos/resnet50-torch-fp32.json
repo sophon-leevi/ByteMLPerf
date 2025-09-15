@@ -2,7 +2,7 @@
   
   {
     "name": "model_precision",
-    "default": "FP32",
+    "default": "F32",
     "depends": null,
     "note" : "选择数据格式",
     "type": "string",

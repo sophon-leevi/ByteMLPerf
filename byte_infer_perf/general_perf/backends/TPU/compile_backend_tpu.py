@@ -22,8 +22,9 @@ from pathlib import Path
 from typing import Any, Dict
 import tpu_mlir
 import shutil
-
+import numpy as np
 from general_perf.backends import compile_backend
+from general_perf.tools import saved_to_onnx
 
 log = logging.getLogger("CompileBackendTPU")
 
@@ -62,29 +63,27 @@ class CompileBackendTPU(compile_backend.CompileBackend):
             self.model_config = configs
         
         self.model_info = configs["model_info"]
+        self.model_format = self.model_info["model_format"]
         self.interact_info = configs["interact_info"]
         self.model_path = self.model_info["model_path"]
-        self.input_shapes = self.model_info["input_shape"][self.model_info["inputs"]]
-        self.input_shapes_str = ','.join(str(num) for num in self.input_shapes)
+        self.input_names = self.model_info["inputs"].split(",")
         self.model_name = self.model_info["model"]
         if("model_precision" in self.interact_info.keys()):
             self.model_precision = self.interact_info["model_precision"]
-            self.mean = self.interact_info["mean"]
-            self.scale = self.interact_info["scale"]
-            self.pixel_format = self.interact_info["pixel_format"]
+            self.mean = self.interact_info["mean"] if "mean" in self.interact_info.keys() else self.mean
+            self.scale = self.interact_info["scale"] if "scale" in self.interact_info.keys() else self.scale
+            self.pixel_format = self.interact_info["pixel_format"] if "pixel_format" in self.interact_info.keys() else "rgb"
             self.input_num = self.interact_info["input_num"]
-
+        if self.model_format != "onnx" and self.model_format != "pt" and self.model_format == "saved_model":
+            onnx_path = os.path.join(self.model_path, self.model_name + ".onnx")
+            if os.path.exists(onnx_path):
+                self.model_path = onnx_path
+            else:
+                saved_to_onnx.savedmodel_to_onnx(self.model_path, onnx_path)
+                self.model_path = onnx_path
         self.precision=self.model_precision.upper()
-        gen_mlir_commands = f'model_transform \
-            --model_name {self.model_name} \
-            --model_def ../../{self.model_path} \
-            --mean {self.mean} \
-            --scale {self.scale} \
-            --pixel_format {self.pixel_format}  \
-            --input_shapes [[{self.input_shapes_str}]] \
-            --mlir {self.model_name}.mlir'
-        gen_mlir_logs = './model_transform.log'
-
+        
+        #compile bmodels with different bs:
         current_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         origin_dir = os.getcwd()
         self.compile_dir_name = current_dir + '/compiled_models/'
@@ -92,38 +91,85 @@ class CompileBackendTPU(compile_backend.CompileBackend):
             shutil.rmtree(self.compile_dir_name)
         os.mkdir(self.compile_dir_name)
         os.chdir(self.compile_dir_name)
-        with open(gen_mlir_logs, 'w') as logfile:
-            subprocess.call(gen_mlir_commands, stdout=logfile, stderr=subprocess.STDOUT, shell=True)
-        if(self.precision == "INT8"):
-            self.dataset_path = current_dir+"/datasets/"+self.model_info["dataset_name"]+"/"+self.interact_info["dataset_path"]
+        compile_bs = configs["workload"]["batch_sizes"]
+        for batch_id,batch_size in enumerate(compile_bs):
+            self.input_shapes = [self.model_info["input_shape"][self.input_names[i]] for i in range(len(self.input_names))]
+            for i in range(len(self.input_shapes)):
+                if (self.input_names[i] != "text") or ("videobert" not in self.model_name):
+                    self.input_shapes[i][0] *= batch_size
+            self.input_shapes_str = "" 
+            for i in range(len(self.input_shapes)):
+                self.input_shapes_str += '[' + ','.join(str(num) for num in self.input_shapes[i]) + ']'
+                if i < len(self.input_shapes) - 1:
+                    self.input_shapes_str += ','
+            gen_mlir_commands = f'model_transform \
+                --model_name {self.model_name} \
+                --model_def ../../{self.model_path} \
+                --mean {self.mean} \
+                --scale {self.scale} \
+                --pixel_format {self.pixel_format} \
+                --input_shapes [{self.input_shapes_str}] \
+                --mlir {self.model_name}_{batch_size}b.mlir'
+            gen_mlir_logs = f'./model_transform_{batch_size}b.log'
 
-            run_calibration_commands = f'run_calibration {self.model_name}.mlir \
-                --dataset {self.dataset_path} \
-                --input_num {self.input_num}  \
-                -o {self.model_name}_cali_table'
-                
-            run_calibration_logs = './run_calibration.log'
+            with open(gen_mlir_logs, 'w') as logfile:
+                subprocess.call(gen_mlir_commands, stdout=logfile, stderr=subprocess.STDOUT, shell=True)
+            if self.precision == "INT8":
+                self.dataset_path = current_dir+"/datasets/"+self.model_info["dataset_name"]+"/"+self.interact_info["dataset_path"]
+                if not os.path.exists(self.dataset_path):
+                    os.mkdir(self.dataset_path)
+                    os.chdir(self.dataset_path)
+                cali_num = self.interact_info["input_num"]
+                for i in range(cali_num):
+                    test_pack = dataloader.get_samples(i)
+                    input_npz = {}
+                    for pack_id, pack_data in enumerate(test_pack):
+                        input_npz[self.input_names[pack_id]] = np.array(pack_data)
+                    np.savez(os.path.join(self.dataset_path, f"{i}.npz"), **input_npz)
 
-        
-            with open(run_calibration_logs , 'w') as logfile:
-                subprocess.call(run_calibration_commands, stdout=logfile, stderr=subprocess.STDOUT, shell=True)
-        
-            deploy_commands = f'model_deploy \
-                --mlir {self.model_name}.mlir \
-                --quantize {self.model_precision} \
-                --chip bm1690 \
-                --calibration_table {self.model_name}_cali_table \
-                --model {self.model_name}.bmodel'
-        else:
-            deploy_commands = f'model_deploy \
-                --mlir {self.model_name}.mlir \
-                --quantize {self.model_precision} \
-                --chip bm1690 \
-                --model {self.model_name}.bmodel'
-        deploy_commands_logs = './model_deploy.log'
-        
-        with open(deploy_commands_logs, 'w') as logfile:
-            subprocess.call(deploy_commands, stdout=logfile, stderr=subprocess.STDOUT, shell=True)
+                if batch_id == 0:
+                    self.input_shapes_1b = [self.model_info["input_shape"][self.input_names[i]] for i in range(len(self.input_names))]
+                    self.input_shapes_str_1b = "" 
+                    for i in range(len(self.input_shapes_1b)):
+                        self.input_shapes_str_1b += '[' + ','.join(str(num) for num in self.input_shapes_1b[i]) + ']'
+                        if i < len(self.input_shapes_1b) - 1:
+                            self.input_shapes_str_1b += ','
+                    gen_mlir_commands = f'model_transform \
+                        --model_name {self.model_name} \
+                        --model_def ../../{self.model_path} \
+                        --mean {self.mean} \
+                        --scale {self.scale} \
+                        --pixel_format {self.pixel_format} \
+                        --input_shapes [{self.input_shapes_str_1b}] \
+                        --mlir {self.model_name}_1b.mlir'
+                    gen_mlir_logs = f'./model_transform_1b.log'
+
+                    with open(gen_mlir_logs, 'w') as logfile:
+                        subprocess.call(gen_mlir_commands, stdout=logfile, stderr=subprocess.STDOUT, shell=True)
+                    run_calibration_commands = f'run_calibration {self.model_name}_1b.mlir \
+                        --dataset {self.dataset_path} \
+                        --input_num {self.input_num}  \
+                        -o {self.model_name}_cali_table'
+                    run_calibration_logs = './run_calibration.log'
+                    with open(run_calibration_logs , 'w') as logfile:
+                        subprocess.call(run_calibration_commands, stdout=logfile, stderr=subprocess.STDOUT, shell=True)
+            
+                deploy_commands = f'model_deploy \
+                    --mlir {self.model_name}_{batch_size}b.mlir \
+                    --quantize {self.model_precision} \
+                    --chip bm1690 \
+                    --calibration_table {self.model_name}_cali_table \
+                    --model {self.model_name}_{self.model_precision.lower()}_{batch_size}b.bmodel'
+            else:
+                deploy_commands = f'model_deploy \
+                    --mlir {self.model_name}_{batch_size}b.mlir \
+                    --quantize {self.model_precision} \
+                    --chip bm1690 \
+                    --model {self.model_name}_{self.model_precision.lower()}_{batch_size}b.bmodel'
+            deploy_commands_logs = f'./model_deploy_{batch_size}b.log'
+            
+            with open(deploy_commands_logs, 'w') as logfile:
+                subprocess.call(deploy_commands, stdout=logfile, stderr=subprocess.STDOUT, shell=True)
         
         os.chdir(origin_dir)
         

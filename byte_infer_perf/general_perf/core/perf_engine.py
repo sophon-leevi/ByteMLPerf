@@ -98,7 +98,8 @@ class PerfEngine:
             log.warning("Activate virtualenv Failed, Please Check...")
 
         self.compile_backend = init_compile_backend(self.backend_type)
-        self.runtime_backend = init_runtime_backend(self.backend_type)
+        if not self.workload['compile_only']:
+            self.runtime_backend = init_runtime_backend(self.backend_type)
 
         output_dir = os.path.abspath('general_perf/reports/' +
                                      self.backend_type)
@@ -346,6 +347,8 @@ class PerfEngine:
                         text="[Backend " + self.backend_type + "]: " +
                         question['note'],
                         style=input_style).run()
+                    if option is None or option == '':
+                        option = question['default']
                 elif question['dialog_type'] == "Radiolist Dialog":
                     choice = [(i, text)
                               for i, text in enumerate(question['options'])]
@@ -359,7 +362,11 @@ class PerfEngine:
                     option = question['options'][num] if num is not None else question[
                         'default']
                 answer[question['name']] = option
-
+        else:
+            sum_question = len(interact_info)
+            for i, question in enumerate(interact_info):
+                option = question['default']
+                answer[question['name']] = option
         return answer
 
     def activate_venv(self, hardware_type: str) -> bool:

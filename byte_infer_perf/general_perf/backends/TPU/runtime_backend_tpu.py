@@ -52,7 +52,7 @@ class RuntimeBackendTPU(runtime_backend.RuntimeBackend):
         # self.input_key = self.configs["input_shape"][self.configs["inputs"]]
         self.dev_id = 1
         self.net = sail.nn.Engine(self.bmodel_path, self.dev_id)
-        self.stream = sail.nn.Engine(self.bmodel_path, self.dev_id)
+        self.stream = sail.nn.Stream(self.dev_id)
         self.net_name = self.net.get_net_names()[0]
         self.input_name = self.net.get_input_names(self.net_name)[0]
         self.output_names = self.net.get_output_names(self.net_name)
@@ -73,7 +73,7 @@ class RuntimeBackendTPU(runtime_backend.RuntimeBackend):
 
         output_arrays = [np.ndarray(shape=(self.output_shapes[i]), dtype=np.float32) for i in range(len(self.output_shapes))]
         outputs = {i:array for i, array in enumerate(output_arrays)}
-        ret = self.net.process(input_data, outputs, self.stream, self.net_name)
+        ret = self.net.process(input_data, outputs, self.stream)#, self.net_name)
         return outputs
 
     def single_chip_test(self, dev_id, iter, thread_id):
@@ -102,7 +102,7 @@ class RuntimeBackendTPU(runtime_backend.RuntimeBackend):
 
  
     def _run_benchmark(self, bs, iter):
-        chip_num, core_num, start_chip =2, 1, 0
+        chip_num, core_num, start_chip =1, 1, 1
         thread_list = []
         for chip_id in range(chip_num):
             for core_id in range(core_num):

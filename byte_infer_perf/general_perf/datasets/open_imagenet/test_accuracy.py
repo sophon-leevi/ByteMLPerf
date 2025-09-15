@@ -30,7 +30,6 @@ class AccuracyChecker(test_accuracy.AccuracyChecker):
         diffs = []
         for i in tqdm(range(num)):
             test_data, labels = self.dataloader.get_samples(i)
-
             results = self.runtime_backend.predict(test_data)
             if "resnet50-tf-fp16" in self.configs["model"]:
                 if 'classes' in results:
