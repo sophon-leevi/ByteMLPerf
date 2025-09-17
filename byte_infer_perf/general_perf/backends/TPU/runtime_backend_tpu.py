@@ -48,7 +48,9 @@ class RuntimeBackendTPU(runtime_backend.RuntimeBackend):
     
     def load(self, batch_size) -> None:
         log.warning("TPU Backend only support static batch_size now.")
-        self.bmodel_path = self.compiled_dir + self.configs["model"] + ".bmodel"
+        model_precision = self.configs["interact_info"]["model_precision"]
+        model_name = self.configs["model"]
+        self.bmodel_path = self.compiled_dir + f'{model_name}_{model_precision.lower()}_{batch_size}b.bmodel'
         # self.input_key = self.configs["input_shape"][self.configs["inputs"]]
         self.dev_id = 1
         self.net = sail.nn.Engine(self.bmodel_path, self.dev_id)
@@ -56,38 +58,49 @@ class RuntimeBackendTPU(runtime_backend.RuntimeBackend):
         self.net_name = self.net.get_net_names()[0]
         self.input_name = self.net.get_input_names(self.net_name)[0]
         self.output_names = self.net.get_output_names(self.net_name)
-        self.input_shape = self.net.get_input_shapes(self.net_name, 0)[0]
+        self.input_shapes = self.net.get_input_shapes(self.net_name, 0)
         self.output_shapes = self.net.get_output_shapes(self.net_name, 0)
-        self.batch_size = self.input_shape[0]
-        self.net_h = self.input_shape[2]
-        self.net_w = self.input_shape[3]
-    
+        self.input_dtypes = self.net.get_input_dtypes(self.net_name)
+        self.output_dtypes = self.net.get_output_dtypes(self.net_name)
+        self.batch_size = batch_size
+        self.dtype_mapping = {
+            sail.DataType.TPU_FLOAT32: np.float32,
+            sail.DataType.TPU_FLOAT16: np.float16,
+            sail.DataType.TPU_INT8: np.int8,
+            sail.DataType.TPU_UINT8: np.uint8,
+            sail.DataType.TPU_INT16: np.int16,
+            sail.DataType.TPU_UINT16: np.uint16,
+            sail.DataType.TPU_INT32: np.int32,
+            sail.DataType.TPU_UINT32: np.uint32,
+        }
     def get_loaded_batch_size(self) -> int:
         return self.batch_size
     
     def predict(self, data):
         if isinstance(data, dict):
-            input_data = {0: next(iter(data.values()))}
+            input_data = {i:array.astype(self.dtype_mapping[self.input_dtypes[i]]) for i, array in enumerate(data.values())}
         else:
             input_data = {0: data}
 
-        output_arrays = [np.ndarray(shape=(self.output_shapes[i]), dtype=np.float32) for i in range(len(self.output_shapes))]
+        output_arrays = [np.ndarray(shape=(self.output_shapes[i]), dtype=self.dtype_mapping[self.output_dtypes[i]]) for i in range(len(self.output_shapes))]
         outputs = {i:array for i, array in enumerate(output_arrays)}
-        ret = self.net.process(input_data, outputs, self.stream)#, self.net_name)
+        ret = self.net.process(input_data, outputs, self.stream, self.net_name)
         return outputs
 
     def single_chip_test(self, dev_id, iter, thread_id):
         net = sail.nn.Engine(self.bmodel_path, dev_id)
         stream = sail.nn.Stream(dev_id)
         net_name = net.get_net_names()[0]
-        input_shape = net.get_input_shapes(net_name, 0)[0]
+        input_shapes = net.get_input_shapes(net_name, 0)
         output_shapes = net.get_output_shapes(net_name, 0)
         
-        input = np.random.rand(*input_shape).astype(np.float32)
-        input_tensor = sail.nn.Tensor(input, sail.DataType.TPU_FLOAT32, dev_id)
-        input_data = {0: input_tensor}
+        input_data = {}
+        for i in range(len(input_shapes)):
+            input = np.random.rand(*input_shapes[i]).astype(self.dtype_mapping[self.input_dtypes[i]])
+            input_tensor = sail.nn.Tensor(input, self.input_dtypes[i], dev_id)
+            input_data[i] = input_tensor
 
-        output_arrays = [sail.nn.Tensor(output_shapes[i], sail.DataType.TPU_FLOAT32, dev_id) for i in range(len(output_shapes))]
+        output_arrays = [sail.nn.Tensor(output_shapes[i], self.output_dtypes[i], dev_id) for i in range(len(output_shapes))]
         outputs = {i:array for i, array in enumerate(output_arrays)}
 
         start_time=time.time()
@@ -102,18 +115,19 @@ class RuntimeBackendTPU(runtime_backend.RuntimeBackend):
 
  
     def _run_benchmark(self, bs, iter):
-        chip_num, core_num, start_chip =1, 1, 1
-        thread_list = []
-        for chip_id in range(chip_num):
-            for core_id in range(core_num):
-                thread_list.append(multiprocessing.Process(target=self.single_chip_test, args=(chip_id+start_chip, iter, chip_id*core_num+core_id)))
+        chip_num, core_num, start_chip =1, 1, 0
+        # thread_list = []
+        # for chip_id in range(chip_num):
+        #     for core_id in range(core_num):
+        #         thread_list.append(multiprocessing.Process(target=self.single_chip_test, args=(chip_id+start_chip, iter, chip_id*core_num+core_id)))
 
         logging.info("Predict running...")
-        for thread in thread_list:
-            thread.start()
+        self.single_chip_test(0, iter, 0)
+        # for thread in thread_list:
+        #     thread.start()
 
-        for thread in thread_list:
-            thread.join()
+        # for thread in thread_list:
+        #     thread.join()
         logging.info("Predict finished")
 
         total_time = self.max_time.value - self.min_time.value
@@ -129,11 +143,10 @@ class RuntimeBackendTPU(runtime_backend.RuntimeBackend):
     def benchmark(self, dataloader):
         report = {}
         report["BS"] = self.batch_size
-        interact_info = self.configs.get("interact_info", {})
         iterations = self.workload["iterations"]
 
         qps, avg_latency, tail_latency = self._run_benchmark(
-            self.batch_size, iterations*100
+            self.batch_size, iterations
         )
 
         report["QPS"] = int(qps)

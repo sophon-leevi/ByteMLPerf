@@ -93,7 +93,7 @@ class CompileBackendTPU(compile_backend.CompileBackend):
         os.chdir(self.compile_dir_name)
         compile_bs = configs["workload"]["batch_sizes"]
         for batch_id,batch_size in enumerate(compile_bs):
-            self.input_shapes = [self.model_info["input_shape"][self.input_names[i]] for i in range(len(self.input_names))]
+            self.input_shapes = [self.model_info["input_shape"][self.input_names[i]].copy() for i in range(len(self.input_names))]
             for i in range(len(self.input_shapes)):
                 if (self.input_names[i] != "text") or ("videobert" not in self.model_name):
                     self.input_shapes[i][0] *= batch_size
@@ -118,14 +118,11 @@ class CompileBackendTPU(compile_backend.CompileBackend):
                 self.dataset_path = current_dir+"/datasets/"+self.model_info["dataset_name"]+"/"+self.interact_info["dataset_path"]
                 if not os.path.exists(self.dataset_path):
                     os.mkdir(self.dataset_path)
-                    os.chdir(self.dataset_path)
-                cali_num = self.interact_info["input_num"]
-                for i in range(cali_num):
-                    test_pack = dataloader.get_samples(i)
-                    input_npz = {}
-                    for pack_id, pack_data in enumerate(test_pack):
-                        input_npz[self.input_names[pack_id]] = np.array(pack_data)
-                    np.savez(os.path.join(self.dataset_path, f"{i}.npz"), **input_npz)
+                    cali_num = self.interact_info["input_num"]
+                    for i in range(cali_num):
+                        test_pack = dataloader.get_samples(i)
+                        input_npz, _ = test_pack
+                        np.savez(os.path.join(self.dataset_path, f"{i}.npz"), **input_npz)
 
                 if batch_id == 0:
                     self.input_shapes_1b = [self.model_info["input_shape"][self.input_names[i]] for i in range(len(self.input_names))]
@@ -143,7 +140,6 @@ class CompileBackendTPU(compile_backend.CompileBackend):
                         --input_shapes [{self.input_shapes_str_1b}] \
                         --mlir {self.model_name}_1b.mlir'
                     gen_mlir_logs = f'./model_transform_1b.log'
-
                     with open(gen_mlir_logs, 'w') as logfile:
                         subprocess.call(gen_mlir_commands, stdout=logfile, stderr=subprocess.STDOUT, shell=True)
                     run_calibration_commands = f'run_calibration {self.model_name}_1b.mlir \
@@ -198,7 +194,7 @@ class CompileBackendTPU(compile_backend.CompileBackend):
                     ],
                 },
             ],
-            "interact_info": self.model_config,
+            "interact_info": self.interact_info,
         }
         
         return result
