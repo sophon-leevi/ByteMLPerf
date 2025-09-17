@@ -132,7 +132,7 @@ class RuntimeBackendTPU(runtime_backend.RuntimeBackend):
 
         total_time = self.max_time.value - self.min_time.value
 
-        frame_num = chip_num * core_num * iter
+        frame_num = chip_num * core_num * iter * bs
         qps = frame_num / total_time
         avg_latency = total_time / frame_num
         tail_latency = -1
