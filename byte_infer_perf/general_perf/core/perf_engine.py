@@ -155,6 +155,7 @@ class PerfEngine:
 
         log.info("Start to compile the model...")
         start = time.time()
+        dataset.rebatch(pre_compile_config['workload']['batch_sizes'][0])
         compile_info = self.compile_backend.compile(pre_compile_config,
                                                     dataset)
         end = time.time()

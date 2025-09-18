@@ -113,10 +113,16 @@ class AccuracyChecker(test_accuracy.AccuracyChecker):
                     end_results.append(end_logit)
         else:
             if isinstance(inputs, dict):
-                (start_logits, end_logits) = (
-                    inputs["start_logits"],
-                    inputs["end_logits"],
-                )
+                if "start_logits" in inputs:
+                    (start_logits, end_logits) = (
+                        inputs["start_logits"],
+                        inputs["end_logits"],
+                    )
+                else:
+                    (start_logits, end_logits) = (
+                        inputs[0],
+                        inputs[1],
+                    )
             elif isinstance(inputs[0], torch.Tensor):
                 (start_logits, end_logits) = (
                     inputs[0].float().cpu().detach().numpy() if inputs[0].dtype==torch.bfloat16 else inputs[0].cpu().detach().numpy(),

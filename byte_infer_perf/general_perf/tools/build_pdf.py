@@ -157,7 +157,7 @@ class PDF(FPDF):
                 self.x += (i + 1) * 33.75 - 6.75
                 self.multi_cell(col_width,
                                 line_height,
-                                str(datum),
+                                str(datum) if len(str(datum)) < 10 else str(datum)[:10],
                                 border=1,
                                 align='C')
             y = self.y

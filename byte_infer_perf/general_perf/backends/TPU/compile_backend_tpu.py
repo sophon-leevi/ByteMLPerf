@@ -73,7 +73,7 @@ class CompileBackendTPU(compile_backend.CompileBackend):
             self.mean = self.interact_info["mean"] if "mean" in self.interact_info.keys() else self.mean
             self.scale = self.interact_info["scale"] if "scale" in self.interact_info.keys() else self.scale
             self.pixel_format = self.interact_info["pixel_format"] if "pixel_format" in self.interact_info.keys() else "rgb"
-            self.input_num = self.interact_info["input_num"]
+            self.input_num = self.interact_info["input_num"] if "input_num" in self.interact_info.keys() else self.input_num
         if self.model_format != "onnx" and self.model_format != "pt" and self.model_format == "saved_model":
             onnx_path = os.path.join(self.model_path, self.model_name + ".onnx")
             if os.path.exists(onnx_path):
@@ -118,7 +118,7 @@ class CompileBackendTPU(compile_backend.CompileBackend):
                 self.dataset_path = current_dir+"/datasets/"+self.model_info["dataset_name"]+"/"+self.interact_info["dataset_path"]
                 if not os.path.exists(self.dataset_path):
                     os.mkdir(self.dataset_path)
-                    cali_num = self.interact_info["input_num"]
+                    cali_num = self.input_num
                     for i in range(cali_num):
                         test_pack = dataloader.get_samples(i)
                         input_npz, _ = test_pack

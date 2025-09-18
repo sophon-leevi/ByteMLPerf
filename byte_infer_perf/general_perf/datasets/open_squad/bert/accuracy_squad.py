@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 
 import numpy as np
 import six
-from bert import tokenization
+from transformers import BertTokenizerFast
 
 # To support feature cache.
 import pickle
@@ -89,7 +89,7 @@ def get_final_text(pred_text, orig_text, do_lower_case):
     # and `pred_text`, and check if they are the same length. If they are
     # NOT the same length, the heuristic has failed. If they are the same
     # length, we assume the characters are one-to-one aligned.
-    tokenizer = tokenization.BasicTokenizer(do_lower_case=do_lower_case)
+    tokenizer = BertTokenizerFast(vocab_file="/workspace/ByteMLPerf/byte_infer_perf/general_perf/datasets/open_squad/vocab.txt", do_lower_case=True)
 
     tok_text = " ".join(tokenizer.tokenize(orig_text))
     start_position = tok_text.find(pred_text)

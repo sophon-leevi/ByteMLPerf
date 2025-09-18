@@ -147,6 +147,8 @@ class DataLoader(data_loader.Dataset):
                         self.eval_features[j].input_mask)
                     features['segment_ids:0'].append(
                         self.eval_features[j].segment_ids)
+            for key in features.keys():
+                features[key] = np.array(features[key])
             self.batched_data.append(features)
 
     def get_samples(self, sample_id):

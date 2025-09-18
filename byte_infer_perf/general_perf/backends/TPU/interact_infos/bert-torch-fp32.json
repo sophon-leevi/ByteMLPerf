@@ -1,0 +1,27 @@
+[
+  {
+    "name": "model_precision",
+    "default": "F32",
+    "depends": null,
+    "note" : "选择数据格式",
+    "type": "string",
+    "options":["F32", "INT8", "F16"],
+    "dialog_type": "Radiolist Dialog"
+  },
+  {
+    "name": "dataset_path",
+    "default": "SQuAD",
+    "depends": null,
+    "note" : "量化数据集路径",
+    "type": "string",
+    "dialog_type": "Input Dialog"
+  },
+  {
+    "name": "input_num",
+    "default": "200",
+    "depends": null,
+    "note" : "量化数据集数量",
+    "type": "int",
+    "dialog_type": "Input Dialog"
+  }
+]
