@@ -52,7 +52,7 @@ class RuntimeBackendTPU(runtime_backend.RuntimeBackend):
         model_name = self.configs["model"]
         self.bmodel_path = self.compiled_dir + f'{model_name}_{model_precision.lower()}_{batch_size}b.bmodel'
         # self.input_key = self.configs["input_shape"][self.configs["inputs"]]
-        self.dev_id = 1
+        self.dev_id = 0
         self.net = sail.nn.Engine(self.bmodel_path, self.dev_id)
         self.stream = sail.nn.Stream(self.dev_id)
         self.net_name = self.net.get_net_names()[0]
@@ -78,21 +78,22 @@ class RuntimeBackendTPU(runtime_backend.RuntimeBackend):
     
     def predict(self, data):
         if isinstance(data, dict):
-            input_data = {i:array.astype(self.dtype_mapping[self.input_dtypes[i]]) for i, array in enumerate(data.values())}
+            input_data = {i:np.array(array).astype(self.dtype_mapping[self.input_dtypes[i]]) for i, array in enumerate(data.values())}
         else:
             input_data = {0: data}
 
         output_arrays = [np.ndarray(shape=(self.output_shapes[i]), dtype=self.dtype_mapping[self.output_dtypes[i]]) for i in range(len(self.output_shapes))]
         outputs = {i:array for i, array in enumerate(output_arrays)}
         ret = self.net.process(input_data, outputs, self.stream, self.net_name)
-        return outputs
+
+        return output_arrays
 
     def single_chip_test(self, dev_id, iter, thread_id):
-        net = sail.nn.Engine(self.bmodel_path, dev_id)
-        stream = sail.nn.Stream(dev_id)
-        net_name = net.get_net_names()[0]
-        input_shapes = net.get_input_shapes(net_name, 0)
-        output_shapes = net.get_output_shapes(net_name, 0)
+        net = self.net # sail.nn.Engine(self.bmodel_path, dev_id)
+        stream = self.stream #sail.nn.Stream(dev_id)
+        net_name = self.net_name # net.get_net_names()[0]
+        input_shapes = self.input_shapes # net.get_input_shapes(net_name, 0)
+        output_shapes = self.output_shapes # net.get_output_shapes(net_name, 0)
         
         input_data = {}
         for i in range(len(input_shapes)):

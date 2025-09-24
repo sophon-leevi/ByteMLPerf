@@ -2,7 +2,7 @@
   
   {
     "name": "model_precision",
-    "default": "F32",
+    "default": "INT8",
     "depends": null,
     "note" : "选择数据格式",
     "type": "string",
