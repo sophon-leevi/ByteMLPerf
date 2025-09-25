@@ -64,8 +64,11 @@ class DataLoader(data_loader.Dataset):
                 tokenizer = AutoTokenizer.from_pretrained(
                     "csarron/roberta-base-squad-v1")
             elif "albert" in self.config['model']:
-                tokenizer = AutoTokenizer.from_pretrained(
-                    "madlag/albert-base-v2-squad")
+                from transformers import AlbertTokenizer
+                tokenizer = AlbertTokenizer.from_pretrained("general_perf/model_zoo/albert-base-v2-squad",
+                                                          local_files_only=True,
+                                                          do_lower_case=True)
+                    #"madlag/albert-base-v2-squad")
             elif "deberta" in self.config['model']:
                 tokenizer = AutoTokenizer.from_pretrained(
                     "Palak/microsoft_deberta-base_squad")

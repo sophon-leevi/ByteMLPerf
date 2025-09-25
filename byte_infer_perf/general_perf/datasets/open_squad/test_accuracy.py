@@ -74,6 +74,7 @@ class AccuracyChecker(test_accuracy.AccuracyChecker):
         write_predictions(self.dataloader.eval_examples,
                           self.dataloader.eval_features, results, 20, 30, True,
                           predict_file)
+        print("-------------------rrenakjdsfn")
         result = check_accuracy(data_file, predict_file,
                                 num * self.dataloader.cur_bs)
         log.info('Batch size is {}, F1: {}, Exact Match:{}'.format(
