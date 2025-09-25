@@ -39,3 +39,4 @@ python3  launch.py --task resnet50-torch-fp32 --hardware_type TPU
 | yolov5-onnx-fp32    | FP16        |  231     | None             | -           | - | [report](../../reports/TPU/yolov5-onnx-fp32/) |
 | bert-torch-fp32    | FP32        |  10     | open_squad      | F1-score       | 91.2037 | [report](../../reports/TPU/bert-torch-fp32/) |
 | albert-torch-fp32    | FP32      |  10     | open_squad      | F1-score       | 87.80423 | [report](../../reports/TPU/albert-torch-fp32/) |
+| roberta-torch-fp32   | FP32      |  10     | open_squad      | F1-score       | 94.68039 | [report](../../reports/TPU/roberta-torch-fp32/) |

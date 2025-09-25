@@ -61,8 +61,10 @@ class DataLoader(data_loader.Dataset):
         else:
             log.info("Start to generate data")
             if "roberta" in self.config['model']:
-                tokenizer = AutoTokenizer.from_pretrained(
-                    "csarron/roberta-base-squad-v1")
+                from transformers import RobertaTokenizer
+                tokenizer = RobertaTokenizer.from_pretrained("general_perf/model_zoo/roberta-base-squad-v1",
+                                                          local_files_only=True,
+                                                          do_lower_case=True)
             elif "albert" in self.config['model']:
                 from transformers import AlbertTokenizer
                 tokenizer = AlbertTokenizer.from_pretrained("general_perf/model_zoo/albert-base-v2-squad",
