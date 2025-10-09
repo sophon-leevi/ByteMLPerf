@@ -35,6 +35,7 @@ class RuntimeBackendTPU(runtime_backend.RuntimeBackend):
         self.packrunner = False
         self.engine = None
         self.runner_name = "SAIL"
+        self.framework = "torch"
         self.compiled_dir = (
             os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))) + "/compiled_models/"
         )
@@ -42,27 +43,6 @@ class RuntimeBackendTPU(runtime_backend.RuntimeBackend):
         self.max_time=multiprocessing.Value('d', -float('inf'))
         self.min_time=multiprocessing.Value('d', float('inf'))
         self.lock = multiprocessing.Lock()
-   
-    def version(self) -> str:
-        return sail.__version__
-    
-    def load(self, batch_size) -> None:
-        log.warning("TPU Backend only support static batch_size now.")
-        model_precision = self.configs["interact_info"]["model_precision"]
-        model_name = self.configs["model"]
-        self.bmodel_path = self.compiled_dir + f'{model_name}_{model_precision.lower()}_{batch_size}b.bmodel'
-        # self.input_key = self.configs["input_shape"][self.configs["inputs"]]
-        self.dev_id = 0
-        self.net = sail.nn.Engine(self.bmodel_path, self.dev_id)
-        self.stream = sail.nn.Stream(self.dev_id)
-        self.net_name = self.net.get_net_names()[0]
-        self.input_name = self.net.get_input_names(self.net_name)[0]
-        self.output_names = self.net.get_output_names(self.net_name)
-        self.input_shapes = self.net.get_input_shapes(self.net_name, 0)
-        self.output_shapes = self.net.get_output_shapes(self.net_name, 0)
-        self.input_dtypes = self.net.get_input_dtypes(self.net_name)
-        self.output_dtypes = self.net.get_output_dtypes(self.net_name)
-        self.batch_size = batch_size
         self.dtype_mapping = {
             sail.DataType.TPU_FLOAT32: np.float32,
             sail.DataType.TPU_FLOAT16: np.float16,
@@ -73,6 +53,29 @@ class RuntimeBackendTPU(runtime_backend.RuntimeBackend):
             sail.DataType.TPU_INT32: np.int32,
             sail.DataType.TPU_UINT32: np.uint32,
         }
+   
+    def version(self) -> str:
+        return sail.__version__
+    
+    def load(self, batch_size) -> None:
+        log.warning("TPU Backend only support static batch_size now.")
+        self.framework = self.configs["framework"]
+        model_precision = self.configs["interact_info"]["model_precision"]
+        model_core_num = self.configs["interact_info"]["num_core"] if "num_core" in self.configs["interact_info"].keys() else 1
+        model_name = self.configs["model"]
+        self.bmodel_path = self.compiled_dir + f'{model_name}_{model_precision.lower()}_{batch_size}b_{model_core_num}core.bmodel'
+        self.batch_size = batch_size
+        self.dev_id = 0
+        self.net = sail.nn.Engine(self.bmodel_path, self.dev_id)
+        self.stream = sail.nn.Stream(self.dev_id)
+        self.net_name = self.net.get_net_names()[0]
+        self.input_name = self.net.get_input_names(self.net_name)[0]
+        self.output_names = self.net.get_output_names(self.net_name)
+        self.input_shapes = self.net.get_input_shapes(self.net_name, 0)
+        self.output_shapes = self.net.get_output_shapes(self.net_name, 0)
+        self.input_dtypes = self.net.get_input_dtypes(self.net_name)
+        self.output_dtypes = self.net.get_output_dtypes(self.net_name)
+
     def get_loaded_batch_size(self) -> int:
         return self.batch_size
     
@@ -85,15 +88,17 @@ class RuntimeBackendTPU(runtime_backend.RuntimeBackend):
         output_arrays = [np.ndarray(shape=(self.output_shapes[i]), dtype=self.dtype_mapping[self.output_dtypes[i]]) for i in range(len(self.output_shapes))]
         outputs = {i:array for i, array in enumerate(output_arrays)}
         ret = self.net.process(input_data, outputs, self.stream, self.net_name)
-
-        return output_arrays
+        if self.framework == "Tensorflow" or self.framework == "Pytorch":
+            return outputs
+        else:
+            return output_arrays
 
     def single_chip_test(self, dev_id, iter, thread_id):
-        net = self.net # sail.nn.Engine(self.bmodel_path, dev_id)
-        stream = self.stream #sail.nn.Stream(dev_id)
-        net_name = self.net_name # net.get_net_names()[0]
-        input_shapes = self.input_shapes # net.get_input_shapes(net_name, 0)
-        output_shapes = self.output_shapes # net.get_output_shapes(net_name, 0)
+        net = sail.nn.Engine(self.bmodel_path, dev_id)
+        stream = sail.nn.Stream(dev_id)
+        net_name = net.get_net_names()[0]
+        input_shapes = net.get_input_shapes(net_name, 0)
+        output_shapes = net.get_output_shapes(net_name, 0)
         
         input_data = {}
         for i in range(len(input_shapes)):
@@ -116,19 +121,24 @@ class RuntimeBackendTPU(runtime_backend.RuntimeBackend):
 
  
     def _run_benchmark(self, bs, iter):
-        chip_num, core_num, start_chip =1, 1, 0
-        # thread_list = []
-        # for chip_id in range(chip_num):
-        #     for core_id in range(core_num):
-        #         thread_list.append(multiprocessing.Process(target=self.single_chip_test, args=(chip_id+start_chip, iter, chip_id*core_num+core_id)))
+        if "resnet" in self.configs["model"]:
+            chip_num, core_num, start_chip =1, 1, 0
+        elif "widedeep" in self.configs["model"]:
+            chip_num, core_num, start_chip =1, 1, 0
+        else:
+            chip_num, core_num, start_chip =1, 1, 0    
+        
+        thread_list = []
+        for chip_id in range(chip_num):
+            for core_id in range(core_num):
+                thread_list.append(multiprocessing.Process(target=self.single_chip_test, args=(chip_id+start_chip, iter, chip_id*core_num+core_id)))
 
         logging.info("Predict running...")
-        self.single_chip_test(0, iter, 0)
-        # for thread in thread_list:
-        #     thread.start()
+        for thread in thread_list:
+            thread.start()
 
-        # for thread in thread_list:
-        #     thread.join()
+        for thread in thread_list:
+            thread.join()
         logging.info("Predict finished")
 
         total_time = self.max_time.value - self.min_time.value

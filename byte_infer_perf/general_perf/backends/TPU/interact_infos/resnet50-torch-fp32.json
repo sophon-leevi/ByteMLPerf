@@ -10,6 +10,13 @@
     "dialog_type": "Radiolist Dialog"
   },
   {
+    "name": "num_core",
+    "default": 1,
+    "note" : "选择模型核数",
+    "type": "int",
+    "dialog_type": "Input Dialog"
+  },
+  {
     "name": "dataset_path",
     "default": "ILSVRC2012_img_val",
     "depends": null,

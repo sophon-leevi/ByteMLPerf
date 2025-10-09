@@ -68,6 +68,7 @@ class CompileBackendTPU(compile_backend.CompileBackend):
         self.model_path = self.model_info["model_path"]
         self.input_names = self.model_info["inputs"].split(",")
         self.model_name = self.model_info["model"]
+        self.model_core_num = self.interact_info["num_core"] if "num_core" in self.interact_info.keys() else 1
         if("model_precision" in self.interact_info.keys()):
             self.model_precision = self.interact_info["model_precision"]
             self.mean = self.interact_info["mean"] if "mean" in self.interact_info.keys() else self.mean
@@ -155,13 +156,15 @@ class CompileBackendTPU(compile_backend.CompileBackend):
                     --quantize {self.model_precision} \
                     --chip bm1690 \
                     --calibration_table {self.model_name}_cali_table \
-                    --model {self.model_name}_{self.model_precision.lower()}_{batch_size}b.bmodel'
+                    --num_core {self.model_core_num} \
+                    --model {self.model_name}_{self.model_precision.lower()}_{batch_size}b_{self.model_core_num}core.bmodel'
             else:
                 deploy_commands = f'model_deploy \
                     --mlir {self.model_name}_{batch_size}b.mlir \
                     --quantize {self.model_precision} \
                     --chip bm1690 \
-                    --model {self.model_name}_{self.model_precision.lower()}_{batch_size}b.bmodel'
+                    --num_core {self.model_core_num} \
+                    --model {self.model_name}_{self.model_precision.lower()}_{batch_size}b_{self.model_core_num}core.bmodel'
             deploy_commands_logs = f'./model_deploy_{batch_size}b.log'
             
             with open(deploy_commands_logs, 'w') as logfile:

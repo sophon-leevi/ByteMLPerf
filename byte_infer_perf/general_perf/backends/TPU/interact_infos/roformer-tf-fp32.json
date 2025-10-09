@@ -2,19 +2,12 @@
   
     {
       "name": "model_precision",
-      "default": "F16",
+      "default": "F32",
       "depends": null,
       "note" : "选择数据格式",
       "type": "string",
       "options":["F32", "INT8", "F16"],
       "dialog_type": "Radiolist Dialog"
-    },
-    {
-      "name": "num_core",
-      "default": 1,
-      "note" : "选择模型核数",
-      "type": "int",
-      "dialog_type": "Input Dialog"
     },
     {
       "name": "dataset_path",
