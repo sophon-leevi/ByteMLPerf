@@ -81,10 +81,13 @@ class RuntimeBackendTPU(runtime_backend.RuntimeBackend):
     
     def predict(self, data):
         if isinstance(data, dict):
-            input_data = {i:np.array(array).astype(self.dtype_mapping[self.input_dtypes[i]]) for i, array in enumerate(data.values())}
+            if not "deberta" in self.configs["model"]:
+                input_data = {i:np.array(array).astype(self.dtype_mapping[self.input_dtypes[i]]) for i, array in enumerate(data.values())}
+            else:
+                input_data = {i:np.array(array).astype(self.dtype_mapping[self.input_dtypes[i]]) for i, array in enumerate(data.values()) if i<2}
         else:
             input_data = {0: data}
-
+        
         output_arrays = [np.ndarray(shape=(self.output_shapes[i]), dtype=self.dtype_mapping[self.output_dtypes[i]]) for i in range(len(self.output_shapes))]
         outputs = {i:array for i, array in enumerate(output_arrays)}
         ret = self.net.process(input_data, outputs, self.stream, self.net_name)

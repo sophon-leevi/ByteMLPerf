@@ -15,7 +15,6 @@
 import os
 # To support feature cache.
 import pickle
-from transformers import BertTokenizer, AutoTokenizer
 from general_perf.datasets.open_squad.create_squad_data import read_squad_examples, convert_examples_to_features
 import collections
 from general_perf.datasets import data_loader
@@ -72,9 +71,11 @@ class DataLoader(data_loader.Dataset):
                                                           do_lower_case=True)
                     #"madlag/albert-base-v2-squad")
             elif "deberta" in self.config['model']:
-                tokenizer = AutoTokenizer.from_pretrained(
-                    "Palak/microsoft_deberta-base_squad")
+                from transformers import DebertaTokenizer
+                tokenizer = DebertaTokenizer.from_pretrained(
+                    "/workspace/ByteMLPerf/byte_infer_perf/general_perf/model_zoo/deberta-base-squad")
             else:
+                from transformers import BertTokenizer
                 tokenizer = BertTokenizer(
                     "general_perf/datasets/open_squad/vocab.txt")
             eval_examples = read_squad_examples(input_file=input_file,
@@ -104,6 +105,7 @@ class DataLoader(data_loader.Dataset):
         self.model = model
         self.cur_bs = 1
         self.batch_num = int(self.items / self.cur_bs)
+        self.type =self.config['input_type'].split(",")
 
         # save mask name to help setting the the results at unmasked positions to zero
         if "roberta" in self.model or "torch" in self.model:
@@ -152,8 +154,8 @@ class DataLoader(data_loader.Dataset):
                         self.eval_features[j].input_mask)
                     features['segment_ids:0'].append(
                         self.eval_features[j].segment_ids)
-            for key in features.keys():
-                features[key] = np.array(features[key])
+            for i,key in enumerate(features.keys()):
+                features[key] = np.array(features[key]).astype(INPUT_TYPE[self.type[i]])
             self.batched_data.append(features)
 
     def get_samples(self, sample_id):
