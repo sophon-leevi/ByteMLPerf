@@ -69,6 +69,91 @@ class CompileBackendTPU(compile_backend.CompileBackend):
         self.input_names = self.model_info["inputs"].split(",")
         self.model_name = self.model_info["model"]
         self.model_core_num = self.interact_info["num_core"] if "num_core" in self.interact_info.keys() else 1
+        if "deberta" in self.model_name:
+            '''export torch model to onnx'''
+            import torch
+            onnx_path = os.path.join(self.model_path.rsplit('/', 1)[0], self.model_name + ".onnx")
+            model = torch.jit.load(self.model_path)
+            model.eval()
+            dummy_inputs = (
+                torch.zeros(1, 384, dtype=torch.long),  # input_ids.1
+                torch.ones(1, 384, dtype=torch.long),  # attention_mask.1
+                torch.zeros(1, 384, dtype=torch.long),   # token_type_ids.1
+            )
+            torch.onnx.export(
+                model,
+                dummy_inputs,
+                onnx_path,
+                opset_version=12,
+                input_names=self.input_names,
+                output_names=self.model_info["outputs"].split(","),
+                dynamic_axes={
+                    'input_ids.1': {0: 'batch_size', 1: 'sequence'},
+                    'attention_mask.1': {0: 'batch_size', 1: 'sequence'},
+                    'token_type_ids.1': {0: 'batch_size', 1: 'sequence'},
+                    'start_logits': {0: 'batch_size', 1: 'sequence'},
+                    'end_logits': {0: 'batch_size', 1: 'sequence'}
+                }
+            )
+            self.model_path = onnx_path
+            self.input_names.remove("token_type_ids.1")
+        if "vae-encoder" in self.model_name:
+            '''fix the RandomNormalLike node issue in VAE encoder'''
+            import onnx
+            from onnx import helper, numpy_helper
+            onnx_path = os.path.join(self.model_path.rsplit('/', 1)[0], self.model_name + "-fixed.onnx")
+            model = onnx.load(self.model_path)
+            graph = model.graph
+            random_nodes = []
+            for i, node in enumerate(graph.node):
+                if node.op_type == 'RandomNormalLike':
+                    random_nodes.append((i, node))
+            for idx, node in random_nodes:
+                output_name = node.output[0]
+                consumers = []
+                for n in graph.node:
+                    if output_name in n.input:
+                        consumers.append(n)
+                for consumer in consumers:
+                    input_idx = list(consumer.input).index(output_name)
+            new_nodes = []
+            nodes_replaced = 0
+            for i, node in enumerate(graph.node):
+                if node.op_type == 'RandomNormalLike':
+                    input_tensor = node.input[0] if node.input else None
+                    output_tensor = node.output[0]
+                    if input_tensor:
+                        zero_const_name = node.name + '_zero_const'
+                        zero_const = helper.make_node(
+                            'Constant',
+                            inputs=[],
+                            outputs=[zero_const_name],
+                            name=node.name + '_zero_const_node',
+                            value=helper.make_tensor(
+                                'const_tensor',
+                                onnx.TensorProto.FLOAT,
+                                [1],
+                                [0.0]
+                            )
+                        )
+                        mul_node = helper.make_node(
+                            'Mul',
+                            inputs=[input_tensor, zero_const_name],
+                            outputs=[output_tensor],
+                            name=node.name + '_as_zero'
+                        )
+                        new_nodes.append(zero_const)
+                        new_nodes.append(mul_node)
+                        nodes_replaced += 1
+                    else:
+                        new_nodes.append(node)
+                else:
+                    new_nodes.append(node)
+            del graph.node[:]
+            graph.node.extend(new_nodes)
+            onnx.save(model, onnx_path)
+            self.model_path = onnx_path
+
         if("model_precision" in self.interact_info.keys()):
             self.model_precision = self.interact_info["model_precision"]
             self.mean = self.interact_info["mean"] if "mean" in self.interact_info.keys() else self.mean
