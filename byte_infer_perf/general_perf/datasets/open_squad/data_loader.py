@@ -61,19 +61,19 @@ class DataLoader(data_loader.Dataset):
             log.info("Start to generate data")
             if "roberta" in self.config['model']:
                 from transformers import RobertaTokenizer
-                tokenizer = RobertaTokenizer.from_pretrained("general_perf/model_zoo/roberta-base-squad-v1",
+                tokenizer = RobertaTokenizer.from_pretrained("general_perf/datasets/open_squad/tokenizers/roberta-base-squad-v1",
                                                           local_files_only=True,
                                                           do_lower_case=True)
             elif "albert" in self.config['model']:
                 from transformers import AlbertTokenizer
-                tokenizer = AlbertTokenizer.from_pretrained("general_perf/model_zoo/albert-base-v2-squad",
+                tokenizer = AlbertTokenizer.from_pretrained("general_perf/datasets/open_squad/tokenizers/albert-base-v2-squad",
                                                           local_files_only=True,
                                                           do_lower_case=True)
                     #"madlag/albert-base-v2-squad")
             elif "deberta" in self.config['model']:
                 from transformers import DebertaTokenizer
                 tokenizer = DebertaTokenizer.from_pretrained(
-                    "/workspace/ByteMLPerf/byte_infer_perf/general_perf/model_zoo/deberta-base-squad")
+                    "general_perf/datasets/open_squad/tokenizers/deberta-base-squad")
             else:
                 from transformers import BertTokenizer
                 tokenizer = BertTokenizer(
