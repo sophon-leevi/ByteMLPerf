@@ -34,6 +34,7 @@ def draw_all_diff(ori_outs, cur_outs, file_name) -> Dict[str, Any]:
     cur_data[np.isinf(cur_data)] = 0.0
 
     length = min(ori_data.shape[0], 300)
+    print(ori_data.shape, cur_data.shape)
     diff = ori_data - cur_data
 
     ori_data = np.where(ori_data == 0, 1, ori_data)

@@ -322,8 +322,8 @@ class PerfEngine:
         })
 
         option = yes_no_dialog(title=self.backend_type + '编译配置',
-                            text='[请选择]：是否进行编译后端配置:',
-                            style=dialog_style).run()
+                text='[请选择]：是否进行编译后端配置:',
+                style=dialog_style).run()
         if option:
             sum_question = len(interact_info)
             for i, question in enumerate(interact_info):

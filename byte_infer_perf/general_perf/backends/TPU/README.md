@@ -34,12 +34,12 @@ python3  launch.py --task resnet50-torch-fp32 --hardware_type TPU
 
 | Model name          |  Precision | QPS       | Dataset            | Metric name | Metric value | report |
 | ----                | ----       | ----      | ----               | ----        | ----     | ---- |
-| widedeep-tf-fp32    | FP16       | 118478    | Open Criteo Kaggle | Top-1       | 0.77392 | [report](../../reports/TPU/widedeep-tf-fp32/) |
+| widedeep-tf-fp32    | FP16       | 1070729    | Open Criteo Kaggle | Top-1       | 0.77392 | [report](../../reports/TPU/widedeep-tf-fp32/) |
 | resnet50-torch-fp32 | INT8       | 10158      | Open Imagenet      | Top-1       | 0.7686 | [report](../../reports/TPU/resnet50-torch-fp32/) |
-| videobert-onnx-fp32 | FP32       | 44        | Open Cifar      | Top-1       | 0.6171 | [report](../../reports/TPU/videobert-onnx-fp32/) |
-| conformer-encoder-onnx-fp32 | FP16 | 571     | None             | -           | - | [report](../../reports/TPU/conformer-encoder-onnx-fp32/) |
-| yolov5-onnx-fp32    | FP16        |  231     | None             | -           | - | [report](../../reports/TPU/yolov5-onnx-fp32/) |
-| bert-torch-fp32    | FP32        |  10     | open_squad      | F1-score       | 91.2037 | [report](../../reports/TPU/bert-torch-fp32/) |
-| albert-torch-fp32    | FP32      |  10     | open_squad      | F1-score       | 87.80423 | [report](../../reports/TPU/albert-torch-fp32/) |
-| roberta-torch-fp32   | FP32      |  10     | open_squad      | F1-score       | 94.68039 | [report](../../reports/TPU/roberta-torch-fp32/) |
-| roformer-torch-fp32  | FP32      |  10     | open_cali2019   | F1-score       | 94.68039 | [report](../../reports/TPU/roformer-torch-fp32/) |
+| videobert-onnx-fp32 | FP32       | 349        | Open Cifar      | Top-1       | 0.6171 | [report](../../reports/TPU/videobert-onnx-fp32/) |
+| conformer-encoder-onnx-fp32 | FP16 | 1940     | None             | -           | - | [report](../../reports/TPU/conformer-encoder-onnx-fp32/) |
+| yolov5-onnx-fp32    | FP16        |  1035     | None             | -           | - | [report](../../reports/TPU/yolov5-onnx-fp32/) |
+| bert-torch-fp32    | FP32        |  43     | open_squad      | F1-score       | 91.2037 | [report](../../reports/TPU/bert-torch-fp32/) |
+| albert-torch-fp32    | FP32      |  65     | open_squad      | F1-score       | 87.80423 | [report](../../reports/TPU/albert-torch-fp32/) |
+| roberta-torch-fp32   | FP32      |  66     | open_squad      | F1-score       | 94.68039 | [report](../../reports/TPU/roberta-torch-fp32/) |
+| roformer-tf-fp32  | FP32      |  81     | open_cali2019   | F1-score       | 94.68039 | [report](../../reports/TPU/roformer-torch-fp32/) |

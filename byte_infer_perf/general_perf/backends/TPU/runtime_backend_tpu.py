@@ -65,7 +65,7 @@ class RuntimeBackendTPU(runtime_backend.RuntimeBackend):
         model_name = self.configs["model"]
         self.bmodel_path = self.compiled_dir + f'{model_name}_{model_precision.lower()}_{batch_size}b_{model_core_num}core.bmodel'
         self.batch_size = batch_size
-        self.dev_id = 0
+        self.dev_id = 1
         self.net = sail.nn.Engine(self.bmodel_path, self.dev_id)
         self.stream = sail.nn.Stream(self.dev_id)
         self.net_name = self.net.get_net_names()[0]
@@ -75,7 +75,11 @@ class RuntimeBackendTPU(runtime_backend.RuntimeBackend):
         self.output_shapes = self.net.get_output_shapes(self.net_name, 0)
         self.input_dtypes = self.net.get_input_dtypes(self.net_name)
         self.output_dtypes = self.net.get_output_dtypes(self.net_name)
-
+    
+    def unload(self):
+        self.net = None
+        self.stream = None
+        
     def get_loaded_batch_size(self) -> int:
         return self.batch_size
     
@@ -102,14 +106,15 @@ class RuntimeBackendTPU(runtime_backend.RuntimeBackend):
         net_name = net.get_net_names()[0]
         input_shapes = net.get_input_shapes(net_name, 0)
         output_shapes = net.get_output_shapes(net_name, 0)
-        
+        input_dtypes = net.get_input_dtypes(net_name)
+        output_dtypes = net.get_output_dtypes(net_name)
         input_data = {}
         for i in range(len(input_shapes)):
-            input = np.random.rand(*input_shapes[i]).astype(self.dtype_mapping[self.input_dtypes[i]])
-            input_tensor = sail.nn.Tensor(input, self.input_dtypes[i], dev_id)
+            input = np.random.rand(*input_shapes[i]).astype(self.dtype_mapping[input_dtypes[i]])
+            input_tensor = sail.nn.Tensor(input, input_dtypes[i], dev_id)
             input_data[i] = input_tensor
 
-        output_arrays = [sail.nn.Tensor(output_shapes[i], self.output_dtypes[i], dev_id) for i in range(len(output_shapes))]
+        output_arrays = [sail.nn.Tensor(output_shapes[i], output_dtypes[i], dev_id) for i in range(len(output_shapes))]
         outputs = {i:array for i, array in enumerate(output_arrays)}
 
         start_time=time.time()
@@ -124,12 +129,13 @@ class RuntimeBackendTPU(runtime_backend.RuntimeBackend):
 
  
     def _run_benchmark(self, bs, iter):
+        self.unload()
         if "resnet" in self.configs["model"]:
-            chip_num, core_num, start_chip =1, 1, 0
+            chip_num, core_num, start_chip =2, 4, 0
         elif "widedeep" in self.configs["model"]:
-            chip_num, core_num, start_chip =1, 1, 0
+            chip_num, core_num, start_chip =2, 4, 0
         else:
-            chip_num, core_num, start_chip =1, 1, 0    
+            chip_num, core_num, start_chip =2, 4, 0    
         
         thread_list = []
         for chip_id in range(chip_num):
