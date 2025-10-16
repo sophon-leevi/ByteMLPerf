@@ -1,0 +1,34 @@
+{
+    "Model": "RESNET50-TORCH-FP32",
+    "Backend": "TPU",
+    "Host Info": "Intel(R) Core(TM) i9-14900K",
+    "Dataset": "OPEN_IMAGENET",
+    "Instance Count": 1,
+    "Device Count": 1,
+    "Graph Compile": {
+        "Compile Duration": 38.92099,
+        "Compile Precision": "INT8",
+        "Subgraph Coverage": 100,
+        "Optimizations": {}
+    },
+    "Version": "1.0.0",
+    "Execution Date": "2025-10-09 11:15:36",
+    "Accuracy": {
+        "Data Percent": 100,
+        "Top-1": 0.7686,
+        "Mean Diff": 0.1457,
+        "Std Diff": 0.12124,
+        "Max Diff": 10.01564,
+        "Max Rel-Diff": 74173.99219,
+        "Mean Rel-Diff": 0.62889,
+        "Diff Dist": "resnet50-torch-fp32-to-int8.png"
+    },
+    "Performance": [
+        {
+            "BS": 4,
+            "QPS": 10158,
+            "AVG Latency": 9.843788295984268e-05,
+            "P99 Latency": -1
+        }
+    ]
+}

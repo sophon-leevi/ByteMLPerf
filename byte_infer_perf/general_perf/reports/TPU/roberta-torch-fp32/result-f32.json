@@ -1,0 +1,41 @@
+{
+    "Model": "ROBERTA-TORCH-FP32",
+    "Backend": "TPU",
+    "Host Info": "Intel(R) Core(TM) i9-14900K",
+    "Dataset": "OPEN_SQUAD",
+    "Instance Count": 1,
+    "Device Count": 1,
+    "Graph Compile": {
+        "Compile Duration": 11.27854,
+        "Compile Precision": "F32",
+        "Subgraph Coverage": 100,
+        "Optimizations": {}
+    },
+    "Version": "1.0.0",
+    "Execution Date": "2025-10-15 15:18:11",
+    "Accuracy": {
+        "Data Percent": 1,
+        "Exact Match": 90.99099,
+        "F1 Score": 94.68039,
+        "Mean Diff": 0.0,
+        "Std Diff": 1e-05,
+        "Max Diff": 0.00253,
+        "Max Rel-Diff": 0.00209,
+        "Mean Rel-Diff": 0.0,
+        "Diff Dist": "roberta-torch-fp32-to-f32.png"
+    },
+    "Performance": [
+        {
+            "BS": 1,
+            "QPS": 79,
+            "AVG Latency": 0.01252226859331131,
+            "P99 Latency": -1
+        },
+        {
+            "BS": 4,
+            "QPS": 66,
+            "AVG Latency": 0.015089863911271095,
+            "P99 Latency": -1
+        }
+    ]
+}
