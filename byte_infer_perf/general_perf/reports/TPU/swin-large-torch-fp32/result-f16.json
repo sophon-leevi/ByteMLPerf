@@ -1,0 +1,52 @@
+{
+    "Model": "SWIN-LARGE-TORCH-FP32",
+    "Backend": "TPU",
+    "Host Info": "Intel(R) Core(TM) i9-14900K",
+    "Dataset": "OPEN_IMAGENET",
+    "Instance Count": 1,
+    "Device Count": 1,
+    "Graph Compile": {
+        "Compile Duration": 540.78431,
+        "Compile Precision": "F16",
+        "Subgraph Coverage": 100,
+        "Optimizations": {}
+    },
+    "Version": "1.0.0",
+    "Execution Date": "2025-10-17 09:56:02",
+    "Accuracy": {
+        "Data Percent": 10,
+        "Top-1": 0.846,
+        "Mean Diff": 0.15235,
+        "Std Diff": 0.17133,
+        "Max Diff": 5.80595,
+        "Max Rel-Diff": 90268.53846,
+        "Mean Rel-Diff": 2.71984,
+        "Diff Dist": "swin-large-torch-fp32-to-f16.png"
+    },
+    "Performance": [
+        {
+            "BS": 1,
+            "QPS": 211,
+            "AVG Latency": 0.004736874401569367,
+            "P99 Latency": -1
+        },
+        {
+            "BS": 2,
+            "QPS": 137,
+            "AVG Latency": 0.007297261506319046,
+            "P99 Latency": -1
+        },
+        {
+            "BS": 4,
+            "QPS": 119,
+            "AVG Latency": 0.008339059874415397,
+            "P99 Latency": -1
+        },
+        {
+            "BS": 8,
+            "QPS": 122,
+            "AVG Latency": 0.008149856254458427,
+            "P99 Latency": -1
+        }
+    ]
+}

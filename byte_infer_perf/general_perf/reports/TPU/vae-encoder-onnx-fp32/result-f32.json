@@ -1,0 +1,32 @@
+{
+    "Model": "VAE-ENCODER-ONNX-FP32",
+    "Backend": "TPU",
+    "Host Info": "Intel(R) Core(TM) i9-14900K",
+    "Dataset": "FAKE_DATASET",
+    "Instance Count": 1,
+    "Device Count": 1,
+    "Graph Compile": {
+        "Compile Duration": 10.89159,
+        "Compile Precision": "F32",
+        "Subgraph Coverage": 100,
+        "Optimizations": {}
+    },
+    "Version": "1.0.0",
+    "Execution Date": "2025-10-21 16:39:53",
+    "Accuracy": {
+        "Mean Diff": 0.00062,
+        "Std Diff": 0.00074,
+        "Max Diff": 0.02886,
+        "Max Rel-Diff": 189.35754,
+        "Mean Rel-Diff": 0.00136,
+        "Diff Dist": "vae-encoder-onnx-fp32-to-f32.png"
+    },
+    "Performance": [
+        {
+            "BS": 4,
+            "QPS": 34,
+            "AVG Latency": 0.0286271820217371,
+            "P99 Latency": -1
+        }
+    ]
+}

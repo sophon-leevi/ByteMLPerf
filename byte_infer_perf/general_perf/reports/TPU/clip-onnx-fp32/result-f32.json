@@ -1,0 +1,32 @@
+{
+    "Model": "CLIP-ONNX-FP32",
+    "Backend": "TPU",
+    "Host Info": "Intel(R) Core(TM) i9-14900K",
+    "Dataset": "FAKE_DATASET",
+    "Instance Count": 1,
+    "Device Count": 1,
+    "Graph Compile": {
+        "Compile Duration": 12.67111,
+        "Compile Precision": "F32",
+        "Subgraph Coverage": 100,
+        "Optimizations": {}
+    },
+    "Version": "1.0.0",
+    "Execution Date": "2025-10-21 16:44:01",
+    "Accuracy": {
+        "Mean Diff": 0.0,
+        "Std Diff": 0.0,
+        "Max Diff": 0.00012,
+        "Max Rel-Diff": 347.0,
+        "Mean Rel-Diff": 6e-05,
+        "Diff Dist": "clip-onnx-fp32-to-f32.png"
+    },
+    "Performance": [
+        {
+            "BS": 4,
+            "QPS": 506,
+            "AVG Latency": 0.001974778398871422,
+            "P99 Latency": -1
+        }
+    ]
+}

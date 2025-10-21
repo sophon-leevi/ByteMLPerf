@@ -42,6 +42,7 @@ class CompileBackendTPU(compile_backend.CompileBackend):
         self.scale = "1.0,1.0,1.0"
         self.pixel_format = "rgb"
         self.input_num = 200
+ 
         
     def version(self) -> str:
         """
@@ -67,36 +68,44 @@ class CompileBackendTPU(compile_backend.CompileBackend):
         self.interact_info = configs["interact_info"]
         self.model_path = self.model_info["model_path"]
         self.input_names = self.model_info["inputs"].split(",")
+        self.output_names = self.model_info["outputs"].split(",")
         self.model_name = self.model_info["model"]
         self.model_core_num = self.interact_info["num_core"] if "num_core" in self.interact_info.keys() else 1
-        if "deberta" in self.model_name:
+        if "swin" in self.model_name or "deberta" in self.model_name:
             '''export torch model to onnx'''
             import torch
+            self.dtype_mapping = {
+                    "LONG": torch.long,
+                    "INT64":torch.int64,
+                    "INT32": torch.int32,
+                    "FLOAT32": torch.float32,
+                    "BOOL": torch.bool
+                }
+            self.input_dtypes = [self.dtype_mapping[key] for key in self.model_info["input_type"].split(",")]
             onnx_path = os.path.join(self.model_path.rsplit('/', 1)[0], self.model_name + ".onnx")
             model = torch.jit.load(self.model_path)
             model.eval()
-            dummy_inputs = (
-                torch.zeros(1, 384, dtype=torch.long),  # input_ids.1
-                torch.ones(1, 384, dtype=torch.long),  # attention_mask.1
-                torch.zeros(1, 384, dtype=torch.long),   # token_type_ids.1
-            )
-            torch.onnx.export(
-                model,
-                dummy_inputs,
-                onnx_path,
-                opset_version=12,
-                input_names=self.input_names,
-                output_names=self.model_info["outputs"].split(","),
-                dynamic_axes={
-                    'input_ids.1': {0: 'batch_size', 1: 'sequence'},
-                    'attention_mask.1': {0: 'batch_size', 1: 'sequence'},
-                    'token_type_ids.1': {0: 'batch_size', 1: 'sequence'},
-                    'start_logits': {0: 'batch_size', 1: 'sequence'},
-                    'end_logits': {0: 'batch_size', 1: 'sequence'}
-                }
-            )
+            dummy_inputs, _ = dataloader.get_samples(0)
+            if "deberta" in self.model_name:
+                self.input_names.remove("token_type_ids.1")
+                dummy_inputs.pop("token_type_ids.1", None)
+            dummy_inputs = [value for key, value in dummy_inputs.items()]
+            dummy_inputs = [torch.Tensor(arr).to(self.input_dtypes[i]) for i, arr in enumerate(dummy_inputs)]
+            dynamic_axes = {}
+            for i in range(len(self.input_names)):
+                if "deberta" in self.model_name:
+                    dynamic_axes[self.input_names[i]] = {0: 'batch_size', 1: 'sequence'}
+                else:
+                    dynamic_axes[self.input_names[i]] = {0: 'batch_size'}
+            torch.onnx.export(model, 
+                              dummy_inputs, 
+                              onnx_path, 
+                              opset_version=12, 
+                              input_names=self.input_names, 
+                              output_names=self.output_names,
+                              dynamic_axes=dynamic_axes)
             self.model_path = onnx_path
-            self.input_names.remove("token_type_ids.1")
+
         if "vae-encoder" in self.model_name:
             '''fix the RandomNormalLike node issue in VAE encoder'''
             import onnx
