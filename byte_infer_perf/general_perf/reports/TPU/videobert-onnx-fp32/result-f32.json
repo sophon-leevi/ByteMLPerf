@@ -6,46 +6,28 @@
     "Instance Count": 1,
     "Device Count": 1,
     "Graph Compile": {
-        "Compile Duration": 91.81533,
+        "Compile Duration": 19.94388,
         "Compile Precision": "F32",
         "Subgraph Coverage": 100,
         "Optimizations": {}
     },
     "Version": "1.0.0",
-    "Execution Date": "2025-10-15 12:41:41",
+    "Execution Date": "2026-01-23 19:25:46",
     "Accuracy": {
         "Data Percent": 1,
-        "Top-1": 0.69,
+        "Top-1": 0.69792,
         "Mean Diff": 1e-05,
         "Std Diff": 1e-05,
-        "Max Diff": 0.0001,
-        "Max Rel-Diff": 0.0,
+        "Max Diff": 0.00014,
+        "Max Rel-Diff": 1e-05,
         "Mean Rel-Diff": 0.0,
         "Diff Dist": "videobert-onnx-fp32-to-f32.png"
     },
     "Performance": [
         {
-            "BS": 1,
-            "QPS": 11,
-            "AVG Latency": 0.08864463835954667,
-            "P99 Latency": -1
-        },
-        {
-            "BS": 8,
-            "QPS": 42,
-            "AVG Latency": 0.02332947973161936,
-            "P99 Latency": -1
-        },
-        {
-            "BS": 64,
-            "QPS": 183,
-            "AVG Latency": 0.005448273089714348,
-            "P99 Latency": -1
-        },
-        {
-            "BS": 256,
-            "QPS": 349,
-            "AVG Latency": 0.0028612006409093737,
+            "BS": 16,
+            "QPS": 247,
+            "AVG Latency": 0.004037971496582031,
             "P99 Latency": -1
         }
     ]

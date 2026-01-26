@@ -6,13 +6,13 @@
     "Instance Count": 1,
     "Device Count": 1,
     "Graph Compile": {
-        "Compile Duration": 38.92099,
+        "Compile Duration": 42.18576,
         "Compile Precision": "INT8",
         "Subgraph Coverage": 100,
         "Optimizations": {}
     },
     "Version": "1.0.0",
-    "Execution Date": "2025-10-09 11:15:36",
+    "Execution Date": "2026-01-23 16:43:42",
     "Accuracy": {
         "Data Percent": 100,
         "Top-1": 0.7686,
@@ -20,14 +20,14 @@
         "Std Diff": 0.12124,
         "Max Diff": 10.01564,
         "Max Rel-Diff": 74173.99219,
-        "Mean Rel-Diff": 0.62889,
+        "Mean Rel-Diff": 0.62971,
         "Diff Dist": "resnet50-torch-fp32-to-int8.png"
     },
     "Performance": [
         {
-            "BS": 4,
-            "QPS": 10158,
-            "AVG Latency": 9.843788295984268e-05,
+            "BS": 8,
+            "QPS": 25189,
+            "AVG Latency": 3.9699554443359375e-05,
             "P99 Latency": -1
         }
     ]

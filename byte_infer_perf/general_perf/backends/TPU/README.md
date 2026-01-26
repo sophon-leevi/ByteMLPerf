@@ -34,8 +34,8 @@ python3  launch.py --task resnet50-torch-fp32 --hardware_type TPU
 
 | Model name                  |  Precision | QPS       | Dataset          | Metric name | Metric value | report |
 | ----                        | ----       | ----      | ----             | ----        | ----     | ---- |
-| widedeep-tf-fp32            | FP16       | 1070729 | Open Criteo Kaggle | Top-1       | 0.77392  | [report](../../reports/TPU/widedeep-tf-fp32/) |
-| resnet50-torch-fp32         | INT8       | 10158   | Open Imagenet      | Top-1       | 0.7686   | [report](../../reports/TPU/resnet50-torch-fp32/) |
+| widedeep-tf-fp32            | FP16       | 1301171 | Open Criteo Kaggle | Top-1       | 0.77392  | [report](../../reports/TPU/widedeep-tf-fp32/) |
+| resnet50-torch-fp32         | INT8       | 25189   | Open Imagenet      | Top-1       | 0.7686   | [report](../../reports/TPU/resnet50-torch-fp32/) |
 | videobert-onnx-fp32         | FP32       | 349     | Open Cifar         | Top-1       | 0.6171   | [report](../../reports/TPU/videobert-onnx-fp32/) |
 | conformer-encoder-onnx-fp32 | FP16       | 1940    | None               | -           | -        | [report](../../reports/TPU/conformer-encoder-onnx-fp32/) |
 | yolov5-onnx-fp32            | FP16       |  1035   | None               | -           | -        | [report](../../reports/TPU/yolov5-onnx-fp32/) |

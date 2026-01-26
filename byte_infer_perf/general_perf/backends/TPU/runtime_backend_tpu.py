@@ -131,11 +131,11 @@ class RuntimeBackendTPU(runtime_backend.RuntimeBackend):
     def _run_benchmark(self, bs, iter):
         self.unload()
         if "resnet" in self.configs["model"]:
-            chip_num, core_num, start_chip =2, 4, 0
+            chip_num, core_num, start_chip =2, 1, 0
         elif "widedeep" in self.configs["model"]:
-            chip_num, core_num, start_chip =2, 4, 0
+            chip_num, core_num, start_chip =2, 1, 0
         else:
-            chip_num, core_num, start_chip =2, 4, 0    
+            chip_num, core_num, start_chip =2, 1, 0    
         
         thread_list = []
         for chip_id in range(chip_num):
