@@ -34,18 +34,18 @@ python3  launch.py --task resnet50-torch-fp32 --hardware_type TPU
 
 | Model name                  |  Precision | QPS       | Dataset          | Metric name | Metric value | report |
 | ----                        | ----       | ----      | ----             | ----        | ----     | ---- |
-| widedeep-tf-fp32            | FP16       | 1070729 | Open Criteo Kaggle | Top-1       | 0.77392  | [report](../../reports/TPU/widedeep-tf-fp32/) |
-| resnet50-torch-fp32         | INT8       | 10158   | Open Imagenet      | Top-1       | 0.7686   | [report](../../reports/TPU/resnet50-torch-fp32/) |
-| videobert-onnx-fp32         | FP32       | 349     | Open Cifar         | Top-1       | 0.6171   | [report](../../reports/TPU/videobert-onnx-fp32/) |
-| conformer-encoder-onnx-fp32 | FP16       | 1940    | None               | -           | -        | [report](../../reports/TPU/conformer-encoder-onnx-fp32/) |
+| widedeep-tf-fp32            | FP16       | 1301171 | Open Criteo Kaggle | Top-1       | 0.77392  | [report](../../reports/TPU/widedeep-tf-fp32/) |
+| resnet50-torch-fp32         | INT8       | 25189   | Open Imagenet      | Top-1       | 0.7686   | [report](../../reports/TPU/resnet50-torch-fp32/) |
+| videobert-onnx-fp32         | FP32       | 247     | Open Cifar         | Top-1       | 0.6979   | [report](../../reports/TPU/videobert-onnx-fp32/) |
+| conformer-encoder-onnx-fp32 | FP16       | 5166    | None               | -           | -        | [report](../../reports/TPU/conformer-encoder-onnx-fp32/) |
 | yolov5-onnx-fp32            | FP16       |  1035   | None               | -           | -        | [report](../../reports/TPU/yolov5-onnx-fp32/) |
-| bert-torch-fp32             | FP32       |  43     | open_squad         | F1-score    | 91.2037  | [report](../../reports/TPU/bert-torch-fp32/) |
-| albert-torch-fp32           | FP32       |  65     | open_squad         | F1-score    | 87.80423 | [report](../../reports/TPU/albert-torch-fp32/) |
-| roberta-torch-fp32          | FP32       |  66     | open_squad         | F1-score    | 94.68039 | [report](../../reports/TPU/roberta-torch-fp32/) |
-| roformer-tf-fp32            | FP32       |  84     | open_cali2019      | Top-1       | 0.64974  | [report](../../reports/TPU/roformer-torch-fp32/) |
-| deberta-torch-fp32          | FP16       |   2     | open_squad         | F1-score    | 90.89661 | [report](../../reports/TPU/deberta-torch-fp32/) |
-| swin-large-torch-fp32       | FP16       |  122    | open_imagenet      | Top-1       | 0.846    | [report](../../reports/TPU/swin-large-torch-fp32/) |
-| unet-onnx-fp32              | FP32       |  39     | None               |   -         |  -       | [report](../../reports/TPU/unet-onnx-fp32/) |
-| vae-decoder-onnx-fp32       | FP32       |  15     | None               | -           | -        | [report](../../reports/TPU/vae-decoder-onnx-fp32/) |
-| vae-encoder-onnx-fp32       | FP32       |  34     | None               | -           | -        | [report](../../reports/TPU/vae-decoder-onnx-fp32/) |
-| clip-onnx-fp32              | FP32       |  506    | None               | -           | -        | [report](../../reports/TPU/clip-onnx-fp32/) |
+| bert-torch-fp32             | bf16       |  1732     | open_squad         | F1-score    | 90.2244  | [report](../../reports/TPU/bert-torch-fp32/) |
+| albert-torch-fp32           | BF16       |  1598    | open_squad         | F1-score    | 86.5980 | [report](../../reports/TPU/albert-torch-fp32/) |
+| roberta-torch-fp32          | BF16       |  1671    | open_squad         | F1-score    | 91.4377 | [report](../../reports/TPU/roberta-torch-fp32/) |
+| roformer-tf-fp32            | FP32       |  160     | open_cali2019      | Top-1       | 0.64974  | [report](../../reports/TPU/roformer-torch-fp32/) |
+| deberta-torch-fp32          | FP16       |   2     | open_squad         | F1-score    | 90.8966 | [report](../../reports/TPU/deberta-torch-fp32/) |
+| swin-large-torch-fp32       | FP16       |  237    | open_imagenet      | Top-1       | 0.846    | [report](../../reports/TPU/swin-large-torch-fp32/) |
+| unet-onnx-fp32              | BF16       |  330     | None               |   -         |  -       | [report](../../reports/TPU/unet-onnx-fp32/) |
+| vae-decoder-onnx-fp32       | BF16       |  73     | None               | -           | -        | [report](../../reports/TPU/vae-decoder-onnx-fp32/) |
+| vae-encoder-onnx-fp32       | BF16       |  156     | None               | -           | -        | [report](../../reports/TPU/vae-decoder-onnx-fp32/) |
+| clip-onnx-fp32              | BF16       |  2660    | None               | -           | -        | [report](../../reports/TPU/clip-onnx-fp32/) |

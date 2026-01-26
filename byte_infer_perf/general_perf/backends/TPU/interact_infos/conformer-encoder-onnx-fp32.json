@@ -10,6 +10,13 @@
       "dialog_type": "Radiolist Dialog"
     },
     {
+      "name": "num_core",
+      "default": 8,
+      "note" : "选择模型核数",
+      "type": "int",
+      "dialog_type": "Input Dialog"
+    },
+    {
       "name": "dataset_path",
       "default": "cali_set",
       "depends": null,

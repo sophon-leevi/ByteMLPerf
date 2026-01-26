@@ -6,47 +6,35 @@
     "Instance Count": 1,
     "Device Count": 1,
     "Graph Compile": {
-        "Compile Duration": 22.26687,
+        "Compile Duration": 12.66733,
         "Compile Precision": "F32",
         "Subgraph Coverage": 100,
         "Optimizations": {}
     },
     "Version": "1.0.0",
-    "Execution Date": "2025-10-15 15:03:27",
+    "Execution Date": "2026-01-29 11:14:24",
     "Accuracy": {
         "Data Percent": 1,
-        "Exact Match": 84.25926,
-        "F1 Score": 91.2037,
+        "Exact Match": 83.65385,
+        "F1 Score": 90.22436,
         "Mean Diff": 0.0,
         "Std Diff": 0.0,
         "Max Diff": 2e-05,
-        "Max Rel-Diff": 0.00114,
+        "Max Rel-Diff": 0.00134,
         "Mean Rel-Diff": 0.0,
         "Diff Dist": "bert-torch-fp32-to-f32.png"
     },
     "Performance": [
         {
-            "BS": 1,
-            "QPS": 78,
-            "AVG Latency": 0.012675886750221252,
-            "P99 Latency": -1
-        },
-        {
-            "BS": 4,
-            "QPS": 66,
-            "AVG Latency": 0.015110609605908393,
-            "P99 Latency": -1
-        },
-        {
             "BS": 8,
-            "QPS": 51,
-            "AVG Latency": 0.019293753243982793,
+            "QPS": 164,
+            "AVG Latency": 0.0060799852013587955,
             "P99 Latency": -1
         },
         {
             "BS": 16,
-            "QPS": 43,
-            "AVG Latency": 0.023027081191539765,
+            "QPS": 109,
+            "AVG Latency": 0.00917159765958786,
             "P99 Latency": -1
         }
     ]

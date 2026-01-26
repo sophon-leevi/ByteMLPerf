@@ -6,13 +6,13 @@
     "Instance Count": 1,
     "Device Count": 1,
     "Graph Compile": {
-        "Compile Duration": 4.9295,
+        "Compile Duration": 6.55216,
         "Compile Precision": "F16",
         "Subgraph Coverage": 100,
         "Optimizations": {}
     },
     "Version": "1.0.0",
-    "Execution Date": "2025-10-15 14:57:17",
+    "Execution Date": "2026-01-29 11:10:01",
     "Accuracy": {
         "Mean Diff": 0.00459,
         "Std Diff": 0.01919,
@@ -24,8 +24,8 @@
     "Performance": [
         {
             "BS": 1,
-            "QPS": 1035,
-            "AVG Latency": 0.0009656453132629395,
+            "QPS": 1032,
+            "AVG Latency": 0.0009684431552886963,
             "P99 Latency": -1
         }
     ]

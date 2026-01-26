@@ -11,7 +11,7 @@
   },
   {
     "name": "num_core",
-    "default": 1,
+    "default": 8,
     "note" : "选择模型核数",
     "type": "int",
     "dialog_type": "Input Dialog"
